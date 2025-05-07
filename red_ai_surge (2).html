@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RED AI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #eeeeee;
+      text-align: center;
+      padding: 50px;
+    }
+    h1 {
+      color: #00e5ff;
+      text-shadow: 2px 2px #00bcd4;
+    }
+    #chat-box {
+      width: 80%;
+      max-width: 600px;
+      margin: 20px auto;
+      background: #1e1e1e;
+      border-radius: 15px;
+      padding: 20px;
+      height: 400px;
+      overflow-y: auto;
+      text-align: left;
+      border: 2px solid #00e5ff;
+    }
+    #user-input {
+      width: 70%;
+      padding: 12px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: 2px solid #00e5ff;
+      background-color: #333333;
+      color: #eeeeee;
+      outline: none;
+    }
+    #send-btn {
+      padding: 12px 20px;
+      background-color: #00e5ff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      margin-left: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #send-btn:hover {
+      background-color: #0097a7;
+    }
+    .message {
+      margin: 10px 0;
+    }
+    .user-message {
+      color: #00e5ff;
+    }
+    .ai-message {
+      color: #76ff03;
+    }
+  </style>
+</head>
+<body>
+  <h1>RED AI</h1>
+  <div id="chat-box"></div>
+  <input type="text" id="user-input" placeholder="اكتب سؤالك هنا..."/>
+  <button id="send-btn">أرسل</button>
+
+  <script>
+    const chatBox = document.getElementById("chat-box");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    // Web Speech API
+    const speechSynthesis = window.speechSynthesis;
+
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ar-SA';
+      speechSynthesis.speak(utterance);
+    }
+
+    async function getAIResponse(prompt) {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer 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"
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [
+            { role: "system", content: "أنت مساعد ذكي اسمه RED AI وترد بالعربية فقط." },
+            { role: "user", content: prompt }
+          ]
+        })
+      });
+
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || "حدث خطأ في الحصول على الرد.";
+    }
+
+    sendBtn.addEventListener("click", async () => {
+      const question = userInput.value.trim();
+      if (question === "") return;
+
+      chatBox.innerHTML += `<div class="message user-message"><strong>أنت:</strong> ${question}</div>`;
+      userInput.value = "";
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      const answer = await getAIResponse(question);
+
+      chatBox.innerHTML += `<div class="message ai-message"><strong>RED AI:</strong> ${answer}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+      speak(answer);
+    });
+  </script>
+</body>
+</html>
